@@ -22,10 +22,43 @@
         {% endif %}
       </div>
       <div class="card-body">
+        <!-- Информация об отложенных постах -->
+        {% if not '/edit/' in request.path and not '/delete/' in request.path %}
+          <div class="alert alert-info mb-3">
+            <small>
+              <strong>Информация:</strong><br>
+              • Вы можете установить будущую дату для отложенной публикации<br>
+              • Отложенные посты будут видны только вам до наступления даты публикации<br>
+              • После отправки вы будете перенаправлены на свой профиль
+            </small>
+          </div>
+        {% endif %}
+        
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {% if not '/delete/' in request.path %}
             {% bootstrap_form form %}
+            
+            <!-- Показ текущего изображения при редактировании -->
+            {% if form.instance.pk and form.instance.image %}
+              <div class="mb-3">
+                <p><strong>Текущее изображение:</strong></p>
+                <img src="{{ form.instance.image.url }}" 
+                     alt="Current image" 
+                     class="img-thumbnail mb-2" 
+                     style="max-height: 200px;">
+                <div class="form-check">
+                  <input class="form-check-input" 
+                         type="checkbox" 
+                         name="image-clear" 
+                         id="image-clear">
+                  <label class="form-check-label" for="image-clear">
+                    Удалить изображение
+                  </label>
+                </div>
+              </div>
+            {% endif %}
+            
           {% else %}
             <article>
               {% if form.instance.image %}
@@ -33,7 +66,12 @@
                   <img class="border-3 rounded img-fluid img-thumbnail mb-2" src="{{ form.instance.image.url }}">
                 </a>
               {% endif %}
-              <p>{{ form.instance.pub_date|date:"d E Y" }} | {% if form.instance.location and form.instance.location.is_published %}{{ form.instance.location.name }}{% else %}Планета Земля{% endif %}<br>
+              <p>{{ form.instance.pub_date|date:"d E Y" }} | 
+                {% if form.instance.location and form.instance.location.is_published %}
+                  {{ form.instance.location.name }}
+                {% else %}
+                  Планета Земля
+                {% endif %}<br>
               <h3>{{ form.instance.title }}</h3>
               <p>{{ form.instance.text|linebreaksbr }}</p>
             </article>
